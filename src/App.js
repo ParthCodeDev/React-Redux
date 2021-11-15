@@ -1,19 +1,48 @@
-import { Fragment } from "react";
-import { useSelector } from "react-redux";
+import { Fragment, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { sendCartData, fetchCardData } from "./store/cart-action";
+import Cart from "./components/Cart/Cart";
+import Layout from "./components/Layout/Layout";
+import Products from "./components/Shop/Products";
+import Notification from "./components/UI/Notification";
 
-import Counter from "./components/Counter";
-import Header from "./components/Header";
-import Auth from "./components/Auth";
-import UserProfile from "./components/UserProfile";
+let isFirstTime = true;
 
 function App() {
-  const userAuth = useSelector((state) => state.auth.isAuthenticated);
-  console.log('App userAut-->', userAuth);
+  const dispatch = useDispatch();
+  const showCartCompoent = useSelector((state) => state.ui.cartIsVisible);
+  const cart = useSelector((state) => state.cart);
+  const notification = useSelector((state) => state.ui.notification);
+  console.log("Main cart Object-->", cart);
+
+  useEffect(() => {
+    dispatch(fetchCardData());
+  }, []);
+
+  useEffect(() => {
+    if (isFirstTime) {
+      isFirstTime = false;
+      return;
+    }
+
+    if (cart.chaged) {
+      dispatch(sendCartData(cart));
+    }
+  }, [cart]);
+
   return (
     <Fragment>
-      <Header />
-      {!userAuth ? <Auth /> : <UserProfile />}
-      <Counter />
+      <Layout>
+        {notification && (
+          <Notification
+            status={notification.status}
+            title={notification.title}
+            message={notification.message}
+          />
+        )}
+        {showCartCompoent && <Cart />}
+        <Products />
+      </Layout>
     </Fragment>
   );
 }
